@@ -1,0 +1,11 @@
+{
+  "log-driver": "json-file",
+  "log-level": "warn",
+  "log-opts": {
+    "max-size": "50m",
+    "max-file": "5"
+  },
+  "iptables": true,
+  "userland-proxy": false,
+  "data-root": "{{ docker_data_dir }}/docker"
+}

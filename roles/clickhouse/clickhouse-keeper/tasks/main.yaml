@@ -1,0 +1,34 @@
+- name: Check clickhouse-keeper node total
+  ansible.builtin.fail:
+    msg: >
+          当前 clickhouse-keeper 组内主机数量为 {{ keeper_count }} (双数)。
+          Raft 集群要求节点总数必须为奇数(如 1, 3, 5),以确保选举一致性。
+          请修改 inventory 后重试。
+  when: (groups['clickhouse-keeper'] | length) % 2 == 0
+
+- name: Gen clickhouse-keeper work dir
+  ansible.builtin.file:
+    path: "{{ keeper_work_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Gen clickhouse-keeper config files
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "{{ keeper_work_dir }}/{{ item }}"
+    mode: '0644'
+  loop:
+    - keeper_config.xml
+    - docker-compose.yaml
+
+- name: Start clickhouse-keeper
+  ansible.builtin.shell: |
+    cd {{ keeper_work_dir }}
+    docker compose -f docker-compose.yaml down
+    docker compose -f docker-compose.yaml up -d
+  register: start_result
+  changed_when: "'Started' in start_result.stderr or 'Created' in start_result.stderr"
+
+- name: Print start result
+  ansible.builtin.debug:
+    var: start_result.stdout_lines

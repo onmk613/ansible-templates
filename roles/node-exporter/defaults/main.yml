@@ -1,0 +1,9 @@
+node_exporter_version: "1.10.2"
+node_exporter_port: 9100
+download_ase_url: "https://github.com/prometheus/node_exporter/releases/download"
+node_exporter_smart: false
+collector_textfile_directory: "/var/lib/node_exporter/textfile_collector"
+smart_check_interval: 5
+bin_dir: "/usr/bin"
+download_package: true
+# https://github.com/prometheus/node_exporter/releases/download/v1.10.2/node_exporter-1.10.2.linux-amd64.tar.gz

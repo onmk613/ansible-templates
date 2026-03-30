@@ -1,0 +1,64 @@
+- name: Set and Validate node_exporter architecture
+  ansible.builtin.set_fact:
+    host_arch: >-
+      {{
+        {'x86_64': 'amd64', 'aarch64': 'arm64'}[ansible_architecture] | default('unsupported')
+      }}
+
+- name: Fail if unsupported
+  ansible.builtin.fail:
+    msg: "Unsupported architecture: {{ ansible_architecture }}"
+  when: host_arch == 'unsupported'
+
+- name: Ensure packages directory exists
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/packages"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+  run_once: true
+
+- name: Download node_exporter binary to control node
+  ansible.builtin.get_url:
+    url: "{{ download_ase_url }}/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ item }}.tar.gz"
+    dest: "{{ playbook_dir }}/packages/node_exporter-{{ node_exporter_version }}.linux-{{ item }}.tar.gz"
+    mode: '0644'
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ ansible_play_hosts | map('extract', hostvars, 'host_arch') | list | unique }}"
+  when: download_package | default(true)
+
+- name: Extract and copy node_exporter binary
+  ansible.builtin.unarchive:
+    src: "{{ playbook_dir }}/packages/node_exporter-{{ node_exporter_version }}.linux-{{ host_arch }}.tar.gz"
+    dest: "{{ bin_dir }}/"
+    mode: '0755'
+    remote_src: false
+    extra_opts:
+      - "--strip-components=1"
+      - "--no-same-owner"
+      - "--wildcards"
+      - "*/node_exporter"
+
+- name: Enable Smart
+  ansible.builtin.include_tasks: enable_smart.yaml
+  when: node_exporter_smart | default(false)
+
+- name: Create systemd file for node_exporter
+  ansible.builtin.template:
+    src: node-exporter.service.j2
+    dest: /etc/systemd/system/node-exporter.service
+    mode: '0644'
+
+- name: Systemctl daemon_reload
+  ansible.builtin.systemd:
+    name: node-exporter
+    state: stopped
+    daemon_reload: true
+  failed_when: false
+
+- name: Ensure node_exporter is running and enabled
+  ansible.builtin.systemd:
+    name: node-exporter
+    state: started
+    enabled: true

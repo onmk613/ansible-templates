@@ -1,0 +1,10 @@
+services:
+  clickhouse-keeper:
+    image: "{{ image_registry }}:{{ keeper_version }}"
+    restart: unless-stopped
+    container_name: clickhouse-keeper
+    network_mode: host
+    volumes:
+     - ./keeper_config.xml:/etc/clickhouse-keeper/keeper_config.xml
+     - {{ keeper_log_dir }}:/var/log/clickhouse-keeper
+     - {{ keeper_data_dir }}:/var/lib/clickhouse

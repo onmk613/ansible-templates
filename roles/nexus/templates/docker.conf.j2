@@ -1,0 +1,17 @@
+server {
+    listen   *:80;
+    server_name  {{ docker_servername }};
+    location /static/ {
+      proxy_pass http://nexus:8081;
+    }
+    location /v2/ {
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header Host $host;
+      proxy_pass http://nexus:8081/repository/docker-mirror/v2/;
+    }
+    location /repository/docker-mirror/v2/token {
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header Host $host;
+      proxy_pass http://nexus:8081;
+    }
+}

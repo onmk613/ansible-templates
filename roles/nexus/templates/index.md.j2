@@ -1,0 +1,84 @@
+# debian 12
+修改 /etc/apt/sources.list
+```txt
+deb {{ use_prxy_mode }}://{{ mirrors_servername }}/debian/ bookworm main contrib non-free non-free-firmware
+# deb-src {{ use_prxy_mode }}://{{ mirrors_servername }}/debian/ bookworm main contrib non-free non-free-firmware
+
+deb {{ use_prxy_mode }}://{{ mirrors_servername }}/debian/ bookworm-updates main contrib non-free non-free-firmware
+# deb-src {{ use_prxy_mode }}://{{ mirrors_servername }}/debian/ bookworm-updates main contrib non-free non-free-firmware
+
+deb {{ use_prxy_mode }}://{{ mirrors_servername }}/debian/ bookworm-backports main contrib non-free non-free-firmware
+# deb-src {{ use_prxy_mode }}://{{ mirrors_servername }}/debian/ bookworm-backports main contrib non-free non-free-firmware
+```
+
+# debian 13
+修改 /etc/apt/mirrors/debian.list
+```txt
+# https://deb.debian.org/debian
+{{ use_prxy_mode }}://{{ mirrors_servername }}/debian
+```
+以及 /etc/apt/mirrors/debian-security.list
+```txt
+# https://deb.debian.org/debian-security
+{{ use_prxy_mode }}://{{ mirrors_servername }}/debian-security
+```
+
+# ubuntu
+同上, 只是将 `http://archive.ubuntu.com/ubuntu` 替换为 `{{ use_prxy_mode }}://{{ mirrors_servername }}/ubuntu`
+
+# docker
+```sh
+sudo tee /etc/docker/daemon.json <<EOF
+{
+    "registry-mirrors": [
+        "{{ use_prxy_mode }}://{{ docker_servername }}"
+    ]
+}
+EOF
+```
+# ghcr mirror
+replace `ghcr.io` with `{{ ghcr_servername }}`
+
+# rust cargo crate
+修改 $CARGO_HOME/config.toml
+```toml
+[source.crates-io]
+replace-with = 'mirror'
+
+[source.mirror]
+registry = "sparse+{{ use_prxy_mode }}://{{ mirrors_servername }}/crates.io-index/"
+
+[registries.mirror]
+index = "sparse+{{ use_prxy_mode }}://{{ mirrors_servername }}/crates.io-index/"
+```
+
+# rustup
+```sh
+export RUSTUP_UPDATE_ROOT={{ use_prxy_mode }}://{{ mirrors_servername }}/rustup/rustup
+export RUSTUP_DIST_SERVER={{ use_prxy_mode }}://{{ mirrors_servername }}/rustup
+```
+
+# go proxy
+```sh
+go env -w GOPROXY={{ use_prxy_mode }}://{{ mirrors_servername }}/goproxy
+go env -w GOSUMDB='sum.golang.org {{ use_prxy_mode }}://{{ mirrors_servername }}/gosum'
+```
+
+# npm
+```sh
+npm config set registry {{ use_prxy_mode }}://{{ mirrors_servername }}/npm
+```
+
+# pip
+## 临时使用
+```sh
+pip install -i {{ use_prxy_mode }}://{{ mirrors_servername }}/pypi/simple pip -U
+```
+## 设为默认
+升级 pip 到最新的版本 (>=10.0.0) 后进行配置：
+```sh
+pip config set global.index-url {{ use_prxy_mode }}://{{ mirrors_servername }}/pypi/simple
+```
+
+# maven
+配置 central repo mirror 为 `{{ use_prxy_mode }}://{{ mirrors_servername }}/maven2/`

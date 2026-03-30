@@ -1,0 +1,7 @@
+keeper_version: "25.12"
+image_registry: "clickhouse/clickhouse-keeper"
+keeper_data_dir: "./data"
+keeper_log_dir: "./logs"
+keeper_work_dir: "/opt/clickhouse-keeper"
+keeper_port: "9181"
+keeper_raft_port: "9234"

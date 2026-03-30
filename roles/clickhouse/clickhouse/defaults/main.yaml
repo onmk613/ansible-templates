@@ -1,0 +1,15 @@
+clickhouse_version: "25.12"
+clickhouse_user: "default"
+clickhouse_db: "default"
+clickhouse_password:
+clickhouse_data_dir: "./data"
+clickhouse_log_dir: "./logs"
+clickhouse_config_d: "./config.d"
+clickhouse_work_dir: "/opt/clickhouse"
+prometheus_port: "9363"
+interserver_http_port: "9009"
+tcp_port: "9000"
+http_port: "8123"
+system_log_interval_day: "15"
+clickhouse_shard_id: "1"
+single_node: false

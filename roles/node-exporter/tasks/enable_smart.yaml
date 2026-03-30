@@ -1,0 +1,40 @@
+- name: Install moreutils and smartmontools wget cron
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  loop:
+    - moreutils
+    - smartmontools
+    - wget
+    - cron
+
+- name: Copy smartmon.sh
+  ansible.builtin.copy:
+    src: "files/smartmon.sh"
+    dest: "{{ bin_dir }}/"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Mkdir collector_textfile_directory
+  ansible.builtin.file:
+    path: "{{ collector_textfile_directory }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Remove old SMART monitoring cron job
+  ansible.builtin.cron:
+    name: "SMART monitoring collection"
+    state: absent
+    user: root
+
+- name: Create cron job
+  ansible.builtin.cron:
+    name: "SMART monitoring collection"
+    minute: "*/{{ smart_check_interval }}"
+    job: "{{ bin_dir }}/smartmon.sh | /usr/bin/sponge {{ collector_textfile_directory }}/smartmon.prom"
+    state: present
+    user: root

@@ -1,0 +1,35 @@
+<clickhouse>
+    {% if groups['clickhouse-keeper'] is defined and groups['clickhouse-keeper'] | length > 0 -%}
+    <zookeeper>
+        {% for host in groups['clickhouse-keeper'] -%}
+        <node>
+            <host>{{ hostvars[host]['ansible_host'] | default(host) }}</host>
+            <port>{{ hostvars[host]['keeper_port'] | default(9181) }}</port>
+        </node>
+        {% endfor -%}
+    </zookeeper>
+    {% endif -%}
+
+    <remote_servers>
+        <clickhouse_cluster>
+            <shard>
+                <internal_replication>true</internal_replication>
+                {% if groups['clickhouse-worker'] is defined -%}
+                {% for host in groups['clickhouse-worker'] -%}
+                <replica>
+                    <host>{{ hostvars[host]['ansible_host'] | default(host) }}</host>
+                    <port>{{ hostvars[host]['tcp_port'] | default(9000) }}</port>
+                    <user>{{ hostvars[host]['clickhouse_user'] | default('default') }}</user>
+                    <password>{{ hostvars[host]['clickhouse_password'] | default('') }}</password>
+                </replica>
+                {% endfor -%}
+                {% endif -%}
+            </shard>
+        </clickhouse_cluster>
+    </remote_servers>
+
+    <macros>
+        <shard>{{ clickhouse_shard_id | default(1) }}</shard>
+        <replica>{{ inventory_hostname }}</replica>
+    </macros>
+</clickhouse>

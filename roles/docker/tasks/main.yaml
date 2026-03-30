@@ -1,0 +1,90 @@
+- name: Ensure packages directory exists
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/packages"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+  run_once: true
+
+- name: Download docker binary to control node
+  ansible.builtin.get_url:
+    url: "https://download.docker.com/linux/static/stable/{{ item }}/docker-{{ docker_version }}.tgz"
+    dest: "{{ playbook_dir }}/packages/docker-{{ docker_version }}-{{ item }}.tgz"
+    mode: '0644'
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ ansible_play_hosts | map('extract', hostvars, 'host_arch') | list | unique }}"
+  when: download_package | default(true)
+
+- name: Download docker-compose binary to control node
+  ansible.builtin.get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ compose_version }}/docker-compose-linux-{{ item }}"
+    dest: "{{ playbook_dir }}/packages/docker-compose-{{ item }}-{{ compose_version }}"
+    mode: '0644'
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ ansible_play_hosts | map('extract', hostvars, 'host_arch') | list | unique }}"
+  when: download_package | default(true)
+
+- name: Extract and copy docker binary
+  ansible.builtin.unarchive:
+    src: "{{ playbook_dir }}/packages/docker-{{ docker_version }}-{{ host_arch }}.tgz"
+    dest: "{{ bin_dir }}/"
+    mode: '0755'
+    remote_src: false
+    extra_opts:
+      - "--strip-components=1"
+      - "--no-same-owner"
+
+- name: Mkdir docker conf dir
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ cli_plugins }}"
+    - "/etc/docker/"
+    - "/etc/containerd/"
+
+- name: Copy daemon.json to host
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/docker/{{ item }}"
+    mode: "0644"
+  loop:
+    - "daemon.json"
+    - "config.toml"
+
+- name: Copy docker-compose binary
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/packages/docker-compose-{{ host_arch }}-{{ compose_version }}"
+    dest: "{{ cli_plugins }}/docker-compose"
+    mode: '0755'
+
+- name: Create systemd file for docker/containerd
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: '0644'
+  loop:
+    - "containerd.service"
+    - "docker.service"
+
+- name: Systemctl daemon_reload
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+    daemon_reload: true
+  failed_when: false
+  loop:
+    - "containerd"
+    - "docker"
+
+- name: Ensure docker/containerd is running and enabled
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop:
+    - "containerd"
+    - "docker"

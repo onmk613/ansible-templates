@@ -1,0 +1,37 @@
+- name: Gen clickhouse work dir
+  ansible.builtin.file:
+    path: "{{ clickhouse_work_dir }}/{{ clickhouse_config_d }}"
+    state: directory
+    mode: '0755'
+
+- name: Gen clickhouse-keeper XML config files
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "{{ clickhouse_work_dir }}/{{ clickhouse_config_d }}/{{ item | basename | replace('.j2', '') }}"
+    mode: '0644'
+  with_fileglob:
+    - "../templates/*.xml.j2"
+
+- name: Gen clickhouse docker-compose.yaml
+  ansible.builtin.template:
+    src: "docker-compose.yaml.j2"
+    dest: "{{ clickhouse_work_dir }}/docker-compose.yaml"
+    mode: '0644'
+
+- name: Remove cluster.xml
+  ansible.builtin.file:
+    path: "{{ clickhouse_work_dir }}/{{ clickhouse_config_d }}/cluster.xml"
+    state: absent
+  when: single_node | default(false) | bool
+
+- name: Start clickhouse
+  ansible.builtin.shell: |
+    cd {{ clickhouse_work_dir }}
+    docker compose -f docker-compose.yaml down
+    docker compose -f docker-compose.yaml up -d
+  register: start_result
+  changed_when: "'Started' in start_result.stderr or 'Created' in start_result.stderr"
+
+- name: Print start result
+  ansible.builtin.debug:
+    var: start_result.stdout_lines

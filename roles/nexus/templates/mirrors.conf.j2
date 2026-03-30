@@ -1,0 +1,42 @@
+server {
+    listen   *:80;
+    server_name  {{ mirrors_servername }};
+    location /static/ {
+      proxy_pass http://nexus:8081;
+    }
+    location /npm/ {
+      proxy_pass http://nexus:8081/repository/npm-mirror/;
+    }
+    location /pypi/ {
+      proxy_pass http://nexus:8081/repository/pypi-mirror/;
+    }
+    location /gosum/ {
+      proxy_pass http://nexus:8081/repository/go-sum/;
+    }
+    location /goproxy/ {
+      proxy_pass http://nexus:8081/repository/go-mirror/;
+    }
+    location /crates.io-index/ {
+      proxy_pass http://nexus:8081/repository/cargo-mirror/;
+      proxy_set_header Host nexus.acme.red;
+    }
+    location /debian/ {
+      proxy_pass http://nexus:8081/repository/debian-mirror/;
+    }
+    location /debian-security/ {
+      proxy_pass http://nexus:8081/repository/debian-security-mirror/;
+    }
+    location /ubuntu/ {
+      proxy_pass http://nexus:8081/repository/ubuntu-mirror/;
+    }
+    location /rustup/ {
+      proxy_pass http://nexus:8081/repository/rustup-mirror/;
+    }
+    location /maven2/ {
+      proxy_pass http://nexus:8081/repository/maven-central/;
+    }
+    location / {
+      root /var/www/html;
+      index index.html;
+    }
+}

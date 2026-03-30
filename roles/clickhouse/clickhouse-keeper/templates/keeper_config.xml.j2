@@ -1,0 +1,29 @@
+<clickhouse replace="true">
+    <logger>
+        <level>information</level>
+        <size>1000M</size>
+        <count>3</count>
+    </logger>
+    <listen_host>0.0.0.0</listen_host>
+
+    <keeper_server>
+    	<tcp_port>{{ keeper_port | default(9181) }}</tcp_port>
+    	<server_id>{{ keeper_server_id }}</server_id>
+
+    	<coordination_settings>
+            <operation_timeout_ms>10000</operation_timeout_ms>
+	        <session_timeout_ms>30000</session_timeout_ms>
+            <raft_logs_level>warning</raft_logs_level>
+    	</coordination_settings>
+
+    	<raft_configuration>
+            {% for host in groups['clickhouse-keeper'] -%}
+            <server>
+                <id>{{ hostvars[host]['keeper_server_id'] }}</id>
+                <hostname>{{ hostvars[host]['ansible_host'] | default(host) }}</hostname>
+                <port>{{ hostvars[host]['keeper_raft_port'] | default(9234) }}</port>
+            </server>
+            {% endfor -%}
+        </raft_configuration>
+    </keeper_server>
+</clickhouse>

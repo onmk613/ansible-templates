@@ -1,0 +1,53 @@
+<clickhouse>
+    <listen_host replace="replace">0.0.0.0</listen_host>
+    <asynchronous_insert_log>
+        <database>system</database>
+        <table>asynchronous_insert_log</table>
+	<partition_by>toYYYYMM(event_date)</partition_by>
+	<ttl>event_date + INTERVAL {{ system_log_interval_day }} DAY DELETE</ttl>
+    </asynchronous_insert_log>
+    <error_log>
+        <database>system</database>
+        <table>error_log</table>
+        <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + INTERVAL {{ system_log_interval_day }} day</engine>
+    </error_log>
+    <metric_log>
+        <database>system</database>
+        <table>metric_log</table>
+        <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + INTERVAL {{ system_log_interval_day }} day</engine>
+    </metric_log>
+    <opentelemetry_span_log>
+        <database>system</database>
+        <table>opentelemetry_span_log</table>
+        <engine>Engine = MergeTree PARTITION BY toYYYYMM(event_date) ORDER BY event_time TTL event_date + INTERVAL {{ system_log_interval_day }} day</engine>
+    </opentelemetry_span_log>
+    <part_log>
+        <database>system</database>
+        <table>part_log</table>
+        <partition_by>toMonday(event_date)</partition_by>
+        <ttl>event_date + INTERVAL {{ system_log_interval_day }} DAY DELETE</ttl>
+    </part_log>
+    <processors_profile_log>
+        <database>system</database>
+        <table>processors_profile_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <ttl>event_date + INTERVAL {{ system_log_interval_day }} DAY DELETE</ttl>
+    </processors_profile_log>
+    <query_log>
+        <database>system</database>
+	<table>query_log</table>
+	<ttl>event_date + INTERVAL {{ system_log_interval_day }} DAY DELETE</ttl>
+    </query_log>
+    <trace_log>
+        <database>system</database>
+        <table>trace_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <ttl>event_date + INTERVAL {{ system_log_interval_day }} DAY DELETE</ttl>
+    </trace_log>
+    <text_log>
+        <level>notice</level>
+        <database>system</database>
+        <table>text_log</table>
+        <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + INTERVAL {{ system_log_interval_day }} day</engine>
+    </text_log>
+</clickhouse>

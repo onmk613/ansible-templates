@@ -1,0 +1,5 @@
+nexus_version: 3.83.1
+nginx_version: 1.26.3
+nexus_work_dir: /opt/nexus
+use_prxy_mode: http
+nexus_data: ./data

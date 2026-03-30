@@ -1,0 +1,44 @@
+docker:
+  vars:
+    docker_data_dir: /data/lib
+  hosts:
+    192.168.1.44:
+
+node-exporter:
+  hosts:
+    192.168.1.45:
+      node_exporter_smart: true
+    192.168.1.46:
+      node_exporter_port: 9200
+
+nexus:
+  vars:
+    use_prxy_mode: https
+    docker_servername: docker-mirror.example.com
+    ghcr_servername: ghcr-mirror.example.com
+    mirrors_servername: mirrors.example.com
+    nexus_servername: nexus.example.com
+  hosts:
+    192.168.1.47:
+
+clickhouse:
+  vars:
+    clickhouse_data_dir: /app/clickhouse/data
+  hosts:
+    192.168.1.48:
+      clickhouse_password: 11111
+    192.168.1.49:
+      clickhouse_password: 22222
+    192.168.1.50:
+      clickhouse_password: 33333
+
+clickhouse-keeper:
+  vars:
+    keeper_data_dir: /app/clickhouse-keeper/data
+  hosts:
+    192.168.1.48:
+      keeper_server_id: 1
+    192.168.1.49:
+      keeper_server_id: 2
+    192.168.1.50:
+      keeper_server_id: 3

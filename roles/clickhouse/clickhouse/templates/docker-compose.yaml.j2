@@ -1,0 +1,23 @@
+services:
+  clickhouse:
+    image: "docker.io/clickhouse/clickhouse-server:{{ clickhouse_version }}"
+    user: root:root
+    container_name: clickhouse
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      {% if clickhouse_password is defined and clickhouse_password -%}
+      CLICKHOUSE_PASSWORD: "{{ clickhouse_password }}"
+      CLICKHOUSE_USER: "{{ clickhouse_user }}"
+      {% endif -%}
+      CLICKHOUSE_DB: "{{ clickhouse_db }}"
+    volumes:
+      - "{{ clickhouse_config_d }}:/etc/clickhouse-server/config.d"
+      - "{{ clickhouse_log_dir }}:/var/log/clickhouse-server"
+      - "{{ clickhouse_data_dir }}:/var/lib/clickhouse"
+    healthcheck:
+      test: "wget --no-verbose --tries=1 --spider http://localhost:{{ http_port }}/ping || exit 1"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 1s

@@ -1,0 +1,24 @@
+- name: Install node-exporter
+  hosts: node-exporter
+  roles:
+    - node-exporter
+
+- name: Install docker
+  hosts: docker
+  roles:
+    - docker
+
+- name: Install nexus
+  hosts: nexus
+  roles:
+    - nexus
+
+- name: Install clickhouse
+  hosts: clickhouse
+  roles:
+    - ./roles/clickhouse/clickhouse
+
+- name: Install clickhouse-keeper
+  hosts: clickhouse-keeper
+  roles:
+    - ./roles/clickhouse/clickhouse-keeper
