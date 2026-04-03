@@ -1,7 +1,7 @@
 # Absible Templates
 
 - 默认在线安装,执行[download.sh](download.sh)会提前下载部署包
-- 配置变量**download_package: false**不会主动联网下载
+- 默认联网安装: **online_install: true**
 
 ## Intsall docker
 - 可通过变量实现版本和部分配置控制

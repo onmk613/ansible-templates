@@ -2,7 +2,6 @@
   ansible.builtin.package:
     name: "{{ item }}"
     state: present
-    update_cache: true
   loop:
     - moreutils
     - smartmontools

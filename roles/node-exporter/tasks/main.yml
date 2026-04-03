@@ -1,6 +1,7 @@
 - name: Set and Validate node_exporter architecture
   ansible.builtin.set_fact:
-    host_arch: >-
+    host_arch: "{{ ansible_architecture }}"
+    host_arch_alias: >-
       {{
         {'x86_64': 'amd64', 'aarch64': 'arm64'}[ansible_architecture] | default('unsupported')
       }}
@@ -8,37 +9,33 @@
 - name: Fail if unsupported
   ansible.builtin.fail:
     msg: "Unsupported architecture: {{ ansible_architecture }}"
-  when: host_arch == 'unsupported'
+  when: host_arch_alias == 'unsupported'
 
-- name: Ensure packages directory exists
-  ansible.builtin.file:
-    path: "{{ playbook_dir }}/packages"
-    state: directory
-    mode: '0755'
-  delegate_to: localhost
-  run_once: true
-
-- name: Download node_exporter binary to control node
+- name: Download node_exporter binary to host
   ansible.builtin.get_url:
-    url: "{{ download_ase_url }}/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ item }}.tar.gz"
-    dest: "{{ playbook_dir }}/packages/node_exporter-{{ node_exporter_version }}.linux-{{ item }}.tar.gz"
+    url: "{{ download_ase_url }}/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ host_arch_alias }}.tar.gz"
+    dest: "/tmp/node_exporter.tar.gz"
     mode: '0644'
-  delegate_to: localhost
-  run_once: true
-  loop: "{{ ansible_play_hosts | map('extract', hostvars, 'host_arch') | list | unique }}"
-  when: download_package | default(true)
+  when: online_install
 
-- name: Extract and copy node_exporter binary
+- name: Extract node_exporter binary
   ansible.builtin.unarchive:
-    src: "{{ playbook_dir }}/packages/node_exporter-{{ node_exporter_version }}.linux-{{ host_arch }}.tar.gz"
+    src: "/tmp/node_exporter.tar.gz"
     dest: "{{ bin_dir }}/"
     mode: '0755'
-    remote_src: false
     extra_opts:
       - "--strip-components=1"
       - "--no-same-owner"
       - "--wildcards"
       - "*/node_exporter"
+  when: online_install
+
+- name: Copy node_exporter binary to host
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/packages/node-exporter/{{ host_arch }}/node_exporter"
+    dest: "{{ bin_dir }}/node_exporter"
+    mode: "0755"
+  when: not online_install
 
 - name: Enable Smart
   ansible.builtin.include_tasks: enable_smart.yaml

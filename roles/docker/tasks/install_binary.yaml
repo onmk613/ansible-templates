@@ -1,0 +1,56 @@
+- name: Download docker binary to host
+  ansible.builtin.get_url:
+    url: "{{ docker_download_url }}"
+    dest: "/tmp/docker.tgz"
+    mode: "0644"
+  when: online_install
+
+- name: Extract docker binary
+  ansible.builtin.unarchive:
+    src: "/tmp/docker.tgz"
+    dest: "{{ bin_dir }}/"
+    mode: '0755'
+    extra_opts:
+      - "--strip-components=1"
+      - "--no-same-owner"
+  when: online_install
+
+- name: Download docker-compose binary to host
+  ansible.builtin.get_url:
+    url: "{{ compose_download_url }}"
+    dest: "{{ cli_plugins }}/docker-compose"
+    mode: "0755"
+  when: online_install
+
+- name: Download docker-compose binary to host
+  ansible.builtin.get_url:
+    url: "{{ buildx_download_url }}"
+    dest: "{{ cli_plugins }}/docker-buildx"
+    mode: '0755'
+  when: online_install
+
+- name: Copy docker binary file to host
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/packages/docker/{{ host_arch }}/{{ item }}"
+    dest: "{{ bin_dir }}/{{ item }}"
+    mode: "0755"
+  loop:
+    - "containerd"
+    - "containerd-shim-runc-v2"
+    - "ctr"
+    - "docker"
+    - "docker-init"
+    - "docker-proxy"
+    - "dockerd"
+    - "runc"
+  when: not online_install
+
+- name: Copy docker plugins binary file to host
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/packages/docker/{{ host_arch }}/{{ item }}"
+    dest: "{{ cli_plugins }}/{{ item }}"
+    mode: "0755"
+  loop:
+    - "docker-compose"
+    - "docker-buildx"
+  when: not online_install

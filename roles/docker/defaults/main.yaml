@@ -1,11 +1,17 @@
 docker_version: 29.3.0
 compose_version: v5.1.1
+buildx_version: v0.33.0
+
 docker_download_url: "https://download.docker.com/linux/static/stable/{{ host_arch }}/docker-{{ docker_version }}.tgz"
 compose_download_url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-linux-{{ host_arch }}"
+buildx_download_url: "https://github.com/docker/buildx/releases/download/{{ buildx_version }}/buildx-{{ buildx_version }}.linux-{{ host_arch_alias }}"
+
 # /var/lib/docker /var/lib/containerd
 docker_data_dir: "/var/lib"
 cli_plugins: "/usr/local/lib/docker/cli-plugins"
 bin_dir: "/usr/bin"
-download_package: true
+online_install: true
+
 # https://download.docker.com/linux/static/stable/x86_64/docker-29.3.0.tgz
 # https://github.com/docker/compose/releases/download/v5.1.1/docker-compose-linux-x86_64
+# https://github.com/docker/buildx/releases/download/v0.33.0/buildx-v0.33.0.linux-amd64

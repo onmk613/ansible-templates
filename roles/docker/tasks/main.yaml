@@ -1,40 +1,15 @@
-- name: Ensure packages directory exists
-  ansible.builtin.file:
-    path: "{{ playbook_dir }}/packages"
-    state: directory
-    mode: '0755'
-  delegate_to: localhost
-  run_once: true
+- name: Set and Validate host architecture
+  ansible.builtin.set_fact:
+    host_arch: "{{ ansible_architecture }}"
+    host_arch_alias: >-
+      {{
+        {'x86_64': 'amd64', 'aarch64': 'arm64'}[ansible_architecture] | default('unsupported')
+      }}
 
-- name: Download docker binary to control node
-  ansible.builtin.get_url:
-    url: "https://download.docker.com/linux/static/stable/{{ item }}/docker-{{ docker_version }}.tgz"
-    dest: "{{ playbook_dir }}/packages/docker-{{ docker_version }}-{{ item }}.tgz"
-    mode: '0644'
-  delegate_to: localhost
-  run_once: true
-  loop: "{{ ansible_play_hosts | map('extract', hostvars, 'host_arch') | list | unique }}"
-  when: download_package | default(true)
-
-- name: Download docker-compose binary to control node
-  ansible.builtin.get_url:
-    url: "https://github.com/docker/compose/releases/download/{{ compose_version }}/docker-compose-linux-{{ item }}"
-    dest: "{{ playbook_dir }}/packages/docker-compose-{{ item }}-{{ compose_version }}"
-    mode: '0644'
-  delegate_to: localhost
-  run_once: true
-  loop: "{{ ansible_play_hosts | map('extract', hostvars, 'host_arch') | list | unique }}"
-  when: download_package | default(true)
-
-- name: Extract and copy docker binary
-  ansible.builtin.unarchive:
-    src: "{{ playbook_dir }}/packages/docker-{{ docker_version }}-{{ host_arch }}.tgz"
-    dest: "{{ bin_dir }}/"
-    mode: '0755'
-    remote_src: false
-    extra_opts:
-      - "--strip-components=1"
-      - "--no-same-owner"
+- name: Fail if unsupported
+  ansible.builtin.fail:
+    msg: "Unsupported architecture: {{ ansible_architecture }}"
+  when: host_arch_alias == 'unsupported'
 
 - name: Mkdir docker conf dir
   ansible.builtin.file:
@@ -46,6 +21,9 @@
     - "/etc/docker/"
     - "/etc/containerd/"
 
+- name: Install binary file to host
+  ansible.builtin.include_tasks: "install_binary.yaml"
+
 - name: Copy daemon.json to host
   ansible.builtin.template:
     src: "{{ item }}.j2"
@@ -54,12 +32,6 @@
   loop:
     - "daemon.json"
     - "config.toml"
-
-- name: Copy docker-compose binary
-  ansible.builtin.copy:
-    src: "{{ playbook_dir }}/packages/docker-compose-{{ host_arch }}-{{ compose_version }}"
-    dest: "{{ cli_plugins }}/docker-compose"
-    mode: '0755'
 
 - name: Create systemd file for docker/containerd
   ansible.builtin.template:
