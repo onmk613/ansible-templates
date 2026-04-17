@@ -3,7 +3,7 @@ compose_version: v5.1.1
 buildx_version: v0.33.0
 
 docker_download_url: "https://download.docker.com/linux/static/stable/{{ host_arch }}/docker-{{ docker_version }}.tgz"
-compose_download_url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-linux-{{ host_arch }}"
+compose_download_url: "https://github.com/docker/compose/releases/download/{{ compose_version }}/docker-compose-linux-{{ host_arch }}"
 buildx_download_url: "https://github.com/docker/buildx/releases/download/{{ buildx_version }}/buildx-{{ buildx_version }}.linux-{{ host_arch_alias }}"
 
 # /var/lib/docker /var/lib/containerd

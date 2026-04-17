@@ -3,11 +3,14 @@ Description=Docker Application Container Engine
 Documentation=https://docs.docker.com
 After=network-online.target docker.socket firewalld.service containerd.service time-set.target
 Wants=network-online.target containerd.service
-Requires=docker.socket
+StartLimitBurst=3
+StartLimitIntervalSec=60
 
 [Service]
 User=root
-ExecStart={{ bin_dir }}/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+ExecStart=/usr/bin/dockerd \
+  --host=unix:///var/run/docker.sock \
+  --containerd=/run/containerd/containerd.sock
 ExecReload=/bin/kill -s HUP $MAINPID
 
 Type=notify
