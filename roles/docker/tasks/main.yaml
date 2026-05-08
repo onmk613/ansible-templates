@@ -26,12 +26,15 @@
 
 - name: Copy daemon.json to host
   ansible.builtin.template:
-    src: "{{ item }}.j2"
-    dest: "/etc/docker/{{ item }}"
+    src: "daemon.json.j2"
+    dest: "/etc/docker/daemon.json"
     mode: "0644"
-  loop:
-    - "daemon.json"
-    - "config.toml"
+
+- name: Copy config.toml to host
+  ansible.builtin.template:
+    src: "config.toml.j2"
+    dest: "/etc/containerd/config.toml"
+    mode: "0644"
 
 - name: Create systemd file for docker/containerd
   ansible.builtin.template:
