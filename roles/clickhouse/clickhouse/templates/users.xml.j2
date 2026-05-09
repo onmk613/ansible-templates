@@ -1,0 +1,51 @@
+<clickhouse>
+    <profiles>
+        <default>
+            <max_memory_usage>5368709120</max_memory_usage><!--5GB;根据GROUPBY大小设置-->
+            <max_bytes_before_external_group_by>2000000000</max_bytes_before_external_group_by>
+            <use_uncompressed_cache>0</use_uncompressed_cache>
+            <optimize_aggregation_in_order>1</optimize_aggregation_in_order>
+            <load_balancing>in_order</load_balancing>
+            <allow_experimental_analyzer>0</allow_experimental_analyzer>
+            <log_queries>1</log_queries>
+            <max_insert_threads>2</max_insert_threads>
+            <max_table_size_to_drop>0</max_table_size_to_drop>
+            <max_query_size>10485760</max_query_size>
+            <allow_experimental_refreshable_materialized_view>1</allow_experimental_refreshable_materialized_view>
+            <max_insert_block_size>104857600</max_insert_block_size>
+            <max_partitions_per_insert_block>1000</max_partitions_per_insert_block>
+        </default>
+        <readonly>
+            <readonly>1</readonly>
+        </readonly>
+    </profiles>
+
+    <quotas>
+        <default>
+            <interval>
+                <duration>3600</duration>
+                <queries>0</queries>
+                <errors>0</errors>
+                <result_rows>0</result_rows>
+                <read_rows>0</read_rows>
+                <execution_time>0</execution_time>
+            </interval>
+        </default>
+    </quotas>
+    <users>
+        <{{ clickhouse_user }} remove="remove">
+            <profile>default</profile>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <quota>default</quota>
+            {% if clickhouse_password is defined and clickhouse_password -%}
+            <password><![CDATA[{{ clickhouse_password }}]]></password>
+            {% endif -%}
+            <access_management>1</access_management>
+            <named_collection_control>1</named_collection_control>
+            <show_named_collections>1</show_named_collections>
+            <show_named_collections_secrets>1</show_named_collections_secrets>
+        </{{ clickhouse_user }}>
+    </users>
+</clickhouse>
